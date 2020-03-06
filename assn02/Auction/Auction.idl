@@ -1,0 +1,35 @@
+module AuctionApp
+{
+    enum AuctionState {
+        Closed,
+        Open
+    };
+
+    typedef struct AuctionStatus {
+        string ownerId;
+        string description;
+        AuctionState state;
+        long bid;
+    } Status;
+
+    typedef struct BidOffer {
+        string bidderId;
+        long value;
+    } Bid;
+
+    typedef struct SellerAuctionStatus {
+        string ownerId;
+        string description;
+        AuctionState state;
+        Bid highestBid;
+    } SellerStatus;
+
+    interface Auction {
+        Status OfferItem(in string userId, in string description, in long initialCost);
+        BidOffer Sell(in string userId);
+        Status Bid(in string bidderId, in long bidPrice);
+        SellerStatus SellerAuctionStatus();
+        boolean AmIWinning(in string userId);
+        Status AuctionStatus();
+    };
+};
