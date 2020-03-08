@@ -2,7 +2,9 @@ module HelloApp
 {
     interface Hello
     {
-        string sayHello();
-        oneway void shutdown();
+        typedef struct TestObj {
+            string s;
+        } TO;
+        string sayHello(out TO s);
     };
 };

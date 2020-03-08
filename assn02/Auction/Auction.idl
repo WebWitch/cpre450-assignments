@@ -1,5 +1,25 @@
 module AuctionApp
 {
+    exception NoAuctionException {
+        string msg;
+    };
+
+    exception DoubleAuctionException {
+        string msg;
+    };
+
+    exception NoBidException {
+        string msg;
+    };
+
+    exception NotAuthorizedException {
+        string msg;
+    };
+
+    exception LowBidException {
+        string msg;
+    };
+
     enum AuctionState {
         Closed,
         Open
@@ -10,7 +30,7 @@ module AuctionApp
         string description;
         AuctionState state;
         long bid;
-    } Status;
+    } BuyerStatus;
 
     typedef struct BidOffer {
         string bidderId;
@@ -22,14 +42,21 @@ module AuctionApp
         string description;
         AuctionState state;
         Bid highestBid;
+        long minBid;
     } SellerStatus;
 
     interface Auction {
-        Status OfferItem(in string userId, in string description, in long initialCost);
-        BidOffer Sell(in string userId);
-        Status Bid(in string bidderId, in long bidPrice);
-        SellerStatus SellerAuctionStatus();
-        boolean AmIWinning(in string userId);
-        Status AuctionStatus();
+        SellerStatus OfferItem(in string userId, in string description, in long initialCost)
+            raises (DoubleAuctionException);
+        Bid SellItem(in string userId)
+            raises (NoBidException, NotAuthorizedException);
+        BuyerStatus PlaceBid(in string bidderId, in long bidPrice)
+            raises (NoAuctionException, LowBidException);
+        SellerStatus GetSellerAuctionStatus()
+            raises (NoAuctionException);
+        boolean AmIWinning(in string userId)
+            raises (NoAuctionException);
+        BuyerStatus GetBuyerAuctionStatus()
+            raises (NoAuctionException);
     };
 };
