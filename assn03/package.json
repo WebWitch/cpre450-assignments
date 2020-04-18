@@ -1,0 +1,20 @@
+{
+  "name": "cpre450-fgaynor-assn03",
+  "version": "1.0.0",
+  "description": "Project 3 for CPR E 450",
+  "main": "app.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Freya Gaynor",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "node-fetch": "^2.6.0",
+    "prompt-sync": "^4.2.0",
+    "stellar-sdk": "^4.1.0"
+  }
+}
