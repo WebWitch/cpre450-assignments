@@ -1,23 +1,13 @@
-/*
-The first phase of the project is intended to familiarize you with the Stellar platform and learn the process of building
-user accounts. Most distributed applications interact with the Stellar network through Horizon, a RESTful HTTP API server.
-The detailed information of Horizon can be learned by following the links in Section VII. In this phase, you will create two
-accounts, with which users transfer lumens (funds) to each other. The basic requirements are:
-
-1) Once the account is created, a new User Interface will pop up to allow user to query the account ID and its balance
-through that user interface.
-2) If the user wishes to initiate a transfer to the targeted account, she can enter the address/accountID and transfer some
-amount of funds to the targeted account.
-3) When user wants to check the activity history, the system can provide the transaction records within a day.
-4) Errors, server exceptions, and invalid user input shall produce reasonably informative error descriptions to the user.
-5) Learn the APIs that allow you to program with Stellar.
-*/
-
+// Dependencies
 const StellarSdk = require('stellar-sdk');
 const fetch = require('node-fetch');
 const prompt = require('prompt-sync')({sigint:true});
 const server = new StellarSdk.Server('https://horizon-testnet.stellar.org');
 
+
+/**
+ * Defines a global error syntax for other internal errors to derive from.
+ */
 class AppError extends Error {
     constructor(message, context) {
         super(message);
@@ -28,10 +18,22 @@ class AppError extends Error {
         console.error(`${Object.getPrototypeOf(this).constructor.name}: ${this.message}`, this.context);
     }
 }
+
+/**
+ * Extends the global error syntax for errors specifically with wallet creation.
+ */
 class CreationError extends AppError {}
 
+
+/**
+ * Extends the global error syntax for errors specifically with transaction handling.
+ */
 class TransactionError extends AppError {}
 
+/**
+ * Handles user login. Prompts for a new account, login, or use debug mode.
+ * Debug mode is a shortcut that has two built-in wallet secrets to make it easy to test the application.
+ */
 async function loginPrompt() {
     console.log("Welcome. What would you like to do?");
     console.log("1) New Account");
@@ -61,6 +63,10 @@ async function loginPrompt() {
     }
 }
 
+/**
+ * Create a new wallet with a public key
+ * @param {string} publicKey 
+ */
 async function createAccount(publicKey) {
     console.log("Creating account with public key " + publicKey);
     try {
@@ -73,33 +79,27 @@ async function createAccount(publicKey) {
     }
 }
 
-function lumenTransfer(pair) {
-
-}
-
-function printId(pair) {
-    console.log("Secret:     ", pair.secret());
-    console.log("Public Key: ", pair.publicKey());
-}
-
-async function printAccountBalance(pair) {
-    
-}
-
+/**
+ * Handles the application running.
+ */
 (async function inputLoop() {
     console.log("Welcome user.");
     try {
+        // Retrieve a wallet keypair
         const pair = await loginPrompt();
+
+        // Input loop
         while (true) {
             console.log("What would you like to do?");
             console.log("1) Transfer lumens");
             console.log("2) Show my ID");
             console.log("3) Get account balance");
             console.log("4) Get transaction history");
-            console.log("q) Exit")
+            console.log("q) Exit");
             const res = prompt();
             if (res == 'q') break;
             switch (res) {
+                // handle transferring lumens
                 case '1': 
                     const destination = prompt("Enter the destination account ID: ");
                     const amount = prompt("Enter the amount to send: ");
@@ -125,14 +125,21 @@ async function printAccountBalance(pair) {
                         throw new TransactionError("Could not process transaction.", e);
                     }
                     break;
+
+                // handle printing user info
                 case '2': 
-                    printId(pair);
+                    console.log("Secret:     ", pair.secret());
+                    console.log("Public Key: ", pair.publicKey());
                     break;
+
+                // handle getting wallet balances
                 case '3':
                     (await server.loadAccount(pair.publicKey()))
                         .balances
                         .forEach(balance => console.log(`Type: ${balance.asset_type}, Balance: ${balance.balance}`));
                     break;
+
+                // handle getting transaction history
                 case '4':
                         await server.transactions()
                             .forAccount(pair.publicKey())
@@ -142,12 +149,15 @@ async function printAccountBalance(pair) {
                                 .forEach((record, i) => console.log(`Record ${i}:`, record)));
                             
                     break;
+                
+                // handle error case
                 default:
                     console.warn("Invalid entry: " + res);
                     continue;
             }
         }
     } catch (e) {
+        // catch errors
         if (e instanceof AppError) e.log();
         else console.error("Error: ", e);
     } finally {
